@@ -58,6 +58,7 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: clip;
 }
 
 body {
@@ -66,6 +67,8 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  overflow-x: clip;
+  max-width: 100%;
 }
 
 /* Prevent a white flash before next-themes resolves */

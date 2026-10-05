@@ -14,7 +14,7 @@ export default function QuickActions() {
     { href: "/dashboard/transfer", label: t("dash.request"), icon: ArrowDownLeftIcon },
   ];
   return (
-    <div className="grid grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       {actions.map((a, i) => {
         const Icon = a.icon;
         return (

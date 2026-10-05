@@ -1,10 +1,10 @@
 "use client";
+// login: email + password only; help-centre opens live chat
 
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import AuthShell from "@/components/AuthShell";
-import CountrySelect from "@/components/ui/CountrySelect";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { createClient } from "@/lib/supabase/client";
 import { MailIcon, LockIcon, EyeIcon, EyeOffIcon, ArrowRightIcon } from "@/components/ui/icons";
@@ -17,7 +17,6 @@ function LoginForm() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [country, setCountry] = useState("");
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -42,10 +41,22 @@ function LoginForm() {
       subtitle={t("auth.signinSub")}
       footer={
         <>
-          {t("auth.noAccount")}{" "}
-          <Link href="/register" className="font-semibold text-brand hover:underline">
-            {t("auth.signUp")}
-          </Link>
+          <div>
+            {t("auth.noAccount")}{" "}
+            <Link href="/register" className="font-semibold text-brand hover:underline">
+              {t("auth.signUp")}
+            </Link>
+          </div>
+          <div className="mt-4 text-xs text-muted">
+            Velora Bank ·{" "}
+            <button
+              type="button"
+              onClick={() => window.Tawk_API?.maximize?.()}
+              className="underline underline-offset-2 hover:text-ink"
+            >
+              Help Centre
+            </button>
+          </div>
         </>
       }
     >
@@ -91,11 +102,6 @@ function LoginForm() {
               {t("auth.forgot")}
             </Link>
           </div>
-        </div>
-
-        <div>
-          <label className="label">{t("auth.country")}</label>
-          <CountrySelect value={country} onChange={setCountry} placeholder={t("auth.selectCountry")} />
         </div>
 
         {error && (
