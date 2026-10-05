@@ -157,6 +157,13 @@ export default function RegisterPage() {
           {loading ? t("auth.signingIn") : t("auth.signUp")}
           {!loading && <ArrowRightIcon size={16} />}
         </button>
+
+        <p className="text-center text-xs leading-relaxed text-muted">
+          By creating an account, you agree to our{" "}
+          <Link href="/terms" className="underline underline-offset-2 hover:text-ink">Terms of Service</Link>{" "}
+          and{" "}
+          <Link href="/privacy" className="underline underline-offset-2 hover:text-ink">Privacy Policy</Link>.
+        </p>
       </form>
     </AuthShell>
   );
