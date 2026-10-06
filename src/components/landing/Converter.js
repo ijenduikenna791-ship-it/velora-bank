@@ -40,11 +40,13 @@ export default function Converter() {
   const converted = (amt / rateOf(from)) * rateOf(to);
   const unitRate = rateOf(to) / rateOf(from);
 
-  const fmt = (n, code) =>
-    new Intl.NumberFormat("en-US", {
-      maximumFractionDigits: code === "JPY" || code === "NGN" ? 0 : 2,
-      minimumFractionDigits: 2,
+  const fmt = (n, code) => {
+    const max = code === "JPY" || code === "NGN" ? 0 : 2;
+    return new Intl.NumberFormat("en-US", {
+      maximumFractionDigits: max,
+      minimumFractionDigits: Math.min(2, max),
     }).format(n);
+  };
 
   function swap() {
     setFrom(to);

@@ -76,7 +76,7 @@ export default function DepositPage() {
       )}
 
       <form onSubmit={submit} className="card space-y-4 p-6">
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label className="label">To account</label>
             <select value={account} onChange={(e) => setAccount(e.target.value)} className="input">

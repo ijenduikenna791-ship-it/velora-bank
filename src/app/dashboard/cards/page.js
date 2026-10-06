@@ -97,7 +97,7 @@ export default function CardsPage() {
           <div className="mt-1 text-xs text-muted">Apply for a debit card to get started.</div>
         </div>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           {cards.map((c, i) => (
             <div key={c.id}>
               <div

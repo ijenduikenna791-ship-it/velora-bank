@@ -261,7 +261,7 @@ export default function TransferForm({ scope = "own", backHref = "/dashboard" })
                   </select>
                 </div>
               )}
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {config.fields.map((f, idx) => (
                   <div key={f.name} className={config.fields.length % 2 !== 0 && idx === 0 ? "sm:col-span-2" : ""}>
                     <label className="label">{f.label}{f.required && " *"}</label>
@@ -276,7 +276,7 @@ export default function TransferForm({ scope = "own", backHref = "/dashboard" })
                 ))}
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className="label">{t("transfer.amount")} *</label>
                   <div className="relative">

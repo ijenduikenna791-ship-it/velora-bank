@@ -94,7 +94,7 @@ export default function RecipientsPage() {
       {/* Add form */}
       <form onSubmit={addRecipient} className="card space-y-4 p-6">
         <div className="text-sm font-semibold text-ink">Add a recipient</div>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label className="label">Label</label>
             <input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. Mum, Landlord, John" className="input" />

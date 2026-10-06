@@ -7,7 +7,15 @@ import { motion } from "framer-motion";
  * Pure SVG, themed via currentColor — no chart library needed.
  */
 export default function MiniChart({ data = [], height = 120 }) {
-  const series = data.length ? data : [12, 18, 14, 22, 19, 27, 24, 31, 28, 36];
+  // Keep only finite numbers, and guarantee at least two points so the
+  // path math never divides by zero (which would produce NaN coordinates).
+  const clean = (data || []).filter((n) => Number.isFinite(n));
+  const series =
+    clean.length > 1
+      ? clean
+      : clean.length === 1
+      ? [clean[0], clean[0]]
+      : [12, 18, 14, 22, 19, 27, 24, 31, 28, 36];
   const width = 520;
   const max = Math.max(...series);
   const min = Math.min(...series);
