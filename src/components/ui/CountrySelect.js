@@ -44,7 +44,7 @@ export default function CountrySelect({ value, onChange, placeholder = "Select c
         <span className="flex items-center gap-2.5 truncate">
           {selected ? (
             <>
-              <Image src={flagUrl(selected.code)} alt="" width={22} height={16} className="rounded-[2px]" unoptimized />
+              <Image src={flagUrl(selected.code)} alt="" width={22} height={16} className="h-4 w-6 shrink-0 rounded-[2px] object-cover" unoptimized />
               <span className="truncate text-ink">{selected.name}</span>
               <span className="text-muted">{selected.dial}</span>
             </>
@@ -84,7 +84,7 @@ export default function CountrySelect({ value, onChange, placeholder = "Select c
                     c.code === value ? "bg-brand/10 text-brand" : "text-ink hover:bg-white/5"
                   }`}
                 >
-                  <Image src={flagUrl(c.code)} alt="" width={22} height={16} className="rounded-[2px]" unoptimized />
+                  <Image src={flagUrl(c.code)} alt="" width={22} height={16} className="h-4 w-6 shrink-0 rounded-[2px] object-cover" unoptimized />
                   <span className="flex-1 truncate text-left">{c.name}</span>
                   <span className="text-xs text-muted">{c.dial}</span>
                 </button>

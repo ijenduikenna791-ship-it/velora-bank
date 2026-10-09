@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import DashboardShell from "@/components/dashboard/DashboardShell";
+import AdminShell from "@/components/admin/AdminShell";
 
 export default async function AdminLayout({ children }) {
   const supabase = await createClient();
@@ -18,9 +18,5 @@ export default async function AdminLayout({ children }) {
 
   if (profile?.role !== "admin") redirect("/admin/login");
 
-  return (
-    <DashboardShell profile={profile} variant="admin">
-      {children}
-    </DashboardShell>
-  );
+  return <AdminShell profile={profile}>{children}</AdminShell>;
 }
