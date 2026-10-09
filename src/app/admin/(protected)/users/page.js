@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n/I18nProvider";
@@ -81,9 +82,14 @@ export default function AdminUsersPage() {
           <h1 className="font-display text-2xl font-extrabold tracking-tight text-ink">{t("admin.users")}</h1>
           <p className="text-sm text-muted">Manage customers, view details, freeze accounts and credit funds.</p>
         </div>
-        <div className="relative w-full sm:w-72">
-          <SearchIcon size={18} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("admin.search")} className="input pl-11" />
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+          <div className="relative w-full sm:w-72">
+            <SearchIcon size={18} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("admin.search")} className="input pl-11" />
+          </div>
+          <Link href="/admin/users/new" className="btn-primary shrink-0">
+            <PlusIcon size={16} /> Create user
+          </Link>
         </div>
       </div>
 
@@ -132,8 +138,11 @@ export default function AdminUsersPage() {
                     </span>
                   </div>
                   <div className="col-span-3 flex gap-2 sm:justify-end">
+                    <Link href={`/admin/users/${r.id}`} className="btn-ghost px-3 py-1.5 text-xs">
+                      <UserIcon size={14} /> Profile
+                    </Link>
                     <button onClick={() => { setDetail(r); setError(""); }} className="btn-ghost px-3 py-1.5 text-xs">
-                      <UserIcon size={14} /> Details
+                      Details
                     </button>
                   </div>
                 </div>
