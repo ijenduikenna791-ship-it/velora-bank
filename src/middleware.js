@@ -38,12 +38,18 @@ export async function middleware(request) {
 
   const path = request.nextUrl.pathname;
   const isDashboard = path.startsWith("/dashboard");
-  const isAdmin = path.startsWith("/admin") && path !== "/admin/login";
+  const isAdmin = path.startsWith("/admin");
 
   if ((isDashboard || isAdmin) && !user) {
     const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = isAdmin ? "/admin/login" : "/login";
-    redirectUrl.searchParams.set("next", path);
+    if (isAdmin) {
+      // Never reveal the admin entrance: send unauthenticated hits home.
+      redirectUrl.pathname = "/";
+      redirectUrl.search = "";
+    } else {
+      redirectUrl.pathname = "/login";
+      redirectUrl.searchParams.set("next", path);
+    }
     return NextResponse.redirect(redirectUrl);
   }
 

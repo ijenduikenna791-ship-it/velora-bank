@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
+import crypto from "crypto";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+
+const sha256 = (s) => crypto.createHash("sha256").update(String(s)).digest("hex");
 
 /**
  * Demo transfer endpoint. Verifies the signed-in user, then calls the
@@ -34,6 +38,28 @@ export async function POST(request) {
   const amt = Number(amount);
   if (!fromAccount || !amt || amt <= 0) {
     return NextResponse.json({ error: "A source account and a valid amount are required" }, { status: 400 });
+  }
+
+  // Two-factor: when the admin has enabled it, a valid emailed code is required.
+  const { data: sec } = await supabase.from("app_settings").select("value").eq("key", "security").maybeSingle();
+  if (sec?.value?.require_2fa === true) {
+    const otp = (body.otp || "").toString().trim();
+    if (!otp) {
+      return NextResponse.json({ error: "A verification code is required", need2fa: true }, { status: 401 });
+    }
+    const admin = createAdminClient();
+    const { data: row } = await admin
+      .from("transfer_otps")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("consumed", false)
+      .eq("code_hash", sha256(otp))
+      .gt("expires_at", new Date().toISOString())
+      .maybeSingle();
+    if (!row) {
+      return NextResponse.json({ error: "That code is invalid or has expired.", need2fa: true }, { status: 401 });
+    }
+    await admin.from("transfer_otps").update({ consumed: true }).eq("id", row.id);
   }
 
   const { data, error } = await supabase.rpc("perform_demo_transfer", {

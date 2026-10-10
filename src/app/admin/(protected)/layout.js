@@ -8,7 +8,7 @@ export default async function AdminLayout({ children }) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) redirect("/admin/login");
+  if (!user) redirect("/");
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -16,7 +16,7 @@ export default async function AdminLayout({ children }) {
     .eq("id", user.id)
     .single();
 
-  if (profile?.role !== "admin") redirect("/admin/login");
+  if (profile?.role !== "admin") redirect("/");
 
   return <AdminShell profile={profile}>{children}</AdminShell>;
 }

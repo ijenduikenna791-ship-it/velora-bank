@@ -75,7 +75,7 @@ export default function AdminShell({ profile, children }) {
 
   async function logout() {
     await supabase.auth.signOut();
-    router.push("/admin/login");
+    router.push("/vault-7f3a2c9b");
     router.refresh();
   }
 

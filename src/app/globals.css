@@ -71,6 +71,22 @@ body {
   max-width: 100%;
 }
 
+/*
+  Mobile overflow guard ("no horizontal shake").
+  Decorative glows, blurs and full-bleed sections can extend past the
+  viewport edge; clipping at the main content wrapper means nothing can
+  ever cause a horizontal scroll on any screen size. Anything beyond the
+  edge is invisible anyway, so the look is unchanged.
+*/
+main {
+  overflow-x: clip;
+}
+
+/* Media never forces the layout wider than its column. */
+img, svg, video, canvas {
+  max-width: 100%;
+}
+
 /* Prevent a white flash before next-themes resolves */
 html { background-color: rgb(10 7 16); }
 html.light { background-color: rgb(247 246 251); }

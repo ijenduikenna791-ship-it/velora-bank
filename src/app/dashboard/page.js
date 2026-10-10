@@ -4,6 +4,7 @@ import QuickActions from "@/components/dashboard/QuickActions";
 import TxnList from "@/components/dashboard/TxnList";
 import MiniChart from "@/components/dashboard/MiniChart";
 import AccountsPanel from "@/components/dashboard/AccountsPanel";
+import LiveClock from "@/components/dashboard/LiveClock";
 import { formatCurrency } from "@/lib/utils";
 import { LockIcon } from "@/components/ui/icons";
 
@@ -41,11 +42,14 @@ export default async function OverviewPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-2xl font-extrabold tracking-tight text-ink">
-          Welcome back
-        </h1>
-        <p className="text-sm text-muted">Here&apos;s what&apos;s happening with your money.</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="font-display text-2xl font-extrabold tracking-tight text-ink">
+            Welcome back
+          </h1>
+          <p className="text-sm text-muted">Here&apos;s what&apos;s happening with your money.</p>
+        </div>
+        <LiveClock />
       </div>
 
       {frozen.length > 0 && (

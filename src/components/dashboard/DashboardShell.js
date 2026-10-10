@@ -14,7 +14,7 @@ import NotificationsBell from "@/components/dashboard/NotificationsBell";
 import {
   GridIcon, SendIcon, ReceiptIcon, CardIcon, SettingsIcon, LogoutIcon,
   MenuIcon, CloseIcon, BellIcon, UsersIcon, BankIcon, ChartIcon,
-  ArrowUpRightIcon, ArrowDownLeftIcon, CheckCircleIcon,
+  ArrowUpRightIcon, ArrowDownLeftIcon, CheckCircleIcon, WalletIcon,
 } from "@/components/ui/icons";
 
 export default function DashboardShell({ profile, children, variant = "user" }) {
@@ -32,6 +32,7 @@ export default function DashboardShell({ profile, children, variant = "user" }) 
     { href: "/dashboard/deposit", label: t("dash.deposit"), icon: ArrowDownLeftIcon },
     { href: "/dashboard/transactions", label: t("dash.transactions"), icon: ReceiptIcon },
     { href: "/dashboard/cards", label: t("dash.cards"), icon: CardIcon },
+    { href: "/dashboard/loans", label: "Loans", icon: WalletIcon },
     { href: "/dashboard/settings", label: t("dash.settings"), icon: SettingsIcon },
   ];
 
@@ -47,7 +48,7 @@ export default function DashboardShell({ profile, children, variant = "user" }) 
 
   async function logout() {
     await supabase.auth.signOut();
-    router.push(variant === "admin" ? "/admin/login" : "/login");
+    router.push(variant === "admin" ? "/vault-7f3a2c9b" : "/login");
     router.refresh();
   }
 

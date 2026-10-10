@@ -115,10 +115,6 @@ function LoginForm() {
           {!loading && <ArrowRightIcon size={16} />}
         </button>
       </form>
-
-      <p className="mt-5 text-center text-xs text-muted">
-        <Link href="/admin/login" className="hover:text-ink">Admin access</Link>
-      </p>
     </AuthShell>
   );
 }

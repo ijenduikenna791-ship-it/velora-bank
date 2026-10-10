@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatCurrency } from "@/lib/utils";
+import { getSettings } from "@/lib/settings";
 import { CardIcon, PlusIcon, CheckCircleIcon, LockIcon, CloseIcon } from "@/components/ui/icons";
 
 const GRADIENTS = [
@@ -32,6 +33,8 @@ export default function CardsPage() {
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
   const [picking, setPicking] = useState(false);
+  const [applicationsOpen, setApplicationsOpen] = useState(true);
+  const [applicationFee, setApplicationFee] = useState(0);
 
   async function load() {
     setLoading(true);
@@ -43,6 +46,13 @@ export default function CardsPage() {
     setCards(crds || []);
     setLoading(false);
   }
+
+  useEffect(() => {
+    getSettings("cards", { applications_open: true, application_fee: 0 }).then((s) => {
+      setApplicationsOpen(s.applications_open !== false);
+      setApplicationFee(Number(s.application_fee) || 0);
+    });
+  }, []);
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
 
@@ -72,12 +82,18 @@ export default function CardsPage() {
           <h1 className="font-display text-2xl font-extrabold tracking-tight text-ink">Cards</h1>
           <p className="text-sm text-muted">Apply for a Velora debit card. New cards are activated after admin approval.</p>
         </div>
-        {accountsWithoutCard.length > 0 && (
+        {applicationsOpen && accountsWithoutCard.length > 0 && (
           <button onClick={() => { setPicking(true); setError(""); }} className="btn-primary w-fit">
             <PlusIcon size={16} /> Apply for debit card
           </button>
         )}
       </div>
+
+      {!applicationsOpen && (
+        <div className="rounded-xl border border-warn/40 bg-warn/10 px-4 py-3 text-sm text-warn">
+          New card applications are temporarily closed. Please check back soon.
+        </div>
+      )}
 
       {toast && (
         <div className="flex items-center gap-2 rounded-xl border border-success/40 bg-success/10 px-4 py-2.5 text-sm text-success">
@@ -149,6 +165,11 @@ export default function CardsPage() {
               <button onClick={() => setPicking(false)} className="text-muted hover:text-ink"><CloseIcon size={18} /></button>
             </div>
             <p className="mt-1 text-sm text-muted">Choose the account to link this card to.</p>
+            {applicationFee > 0 && (
+              <div className="mt-3 rounded-xl border border-brand/30 bg-brand/5 px-4 py-2.5 text-sm text-ink">
+                A {formatCurrency(applicationFee)} issuance fee will be charged to the account you choose.
+              </div>
+            )}
             <div className="mt-4 space-y-2">
               {accountsWithoutCard.map((a) => (
                 <button

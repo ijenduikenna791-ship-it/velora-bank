@@ -1,8 +1,9 @@
 "use client";
 
 // Currency converter with country flags next to each currency.
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { getSettings } from "@/lib/settings";
 
 // Demo FX rates — units per 1 USD. Illustrative only, no live API.
 const CURRENCIES = [
@@ -35,6 +36,11 @@ export default function Converter() {
   const [amount, setAmount] = useState("1000");
   const [from, setFrom] = useState("USD");
   const [to, setTo] = useState("EUR");
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    getSettings("appearance", { show_converter: true }).then((s) => setVisible(s.show_converter !== false));
+  }, []);
 
   const amt = parseFloat(amount) || 0;
   const converted = (amt / rateOf(from)) * rateOf(to);
@@ -72,6 +78,8 @@ export default function Converter() {
       </select>
     </div>
   );
+
+  if (!visible) return null;
 
   return (
     <section id="converter" className="relative py-20">

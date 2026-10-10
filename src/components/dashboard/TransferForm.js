@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { CHANNELS, formatCurrency, maskAccount } from "@/lib/utils";
+import { getSettings } from "@/lib/settings";
 import { FIELDS } from "@/lib/transfer-fields";
 import { ArrowRightIcon, ArrowLeftIcon, CheckCircleIcon, CopyIcon, LockIcon, DownloadIcon, UserIcon } from "@/components/ui/icons";
 import { BRAND_CHANNEL_ICONS } from "@/components/ui/brand-icons";
@@ -90,6 +91,13 @@ export default function TransferForm({ scope = "own", backHref = "/dashboard" })
   const [result, setResult] = useState(null);
   const [copied, setCopied] = useState(false);
   const [showPin, setShowPin] = useState(false);
+  const [limits, setLimits] = useState({ min_transfer: 0, max_transfer: 0 });
+  const [enabledChannels, setEnabledChannels] = useState(null); // null = not loaded yet (show all)
+  const [require2fa, setRequire2fa] = useState(false);
+  const [otpOpen, setOtpOpen] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const [otpInfo, setOtpInfo] = useState(null); // { demo?, code?, to?, error? }
+  const [otpBusy, setOtpBusy] = useState(false);
 
   async function loadAccounts() {
     let q = supabase
@@ -114,8 +122,27 @@ export default function TransferForm({ scope = "own", backHref = "/dashboard" })
   useEffect(() => {
     loadAccounts();
     loadBeneficiaries();
+    // Customer transfers respect the admin's payment + limit settings.
+    if (!isAdmin) {
+      getSettings("payment", { channels: {} }).then((s) => setEnabledChannels(s.channels || {}));
+      getSettings("app", { min_transfer: 0, max_transfer: 0 }).then((s) =>
+        setLimits({ min_transfer: Number(s.min_transfer) || 0, max_transfer: Number(s.max_transfer) || 0 })
+      );
+      getSettings("security", { require_2fa: false }).then((s) => setRequire2fa(s.require_2fa === true));
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // A channel is shown unless the admin explicitly disabled it.
+  const channelList = CHANNELS.filter((c) => !enabledChannels || enabledChannels[c.id] !== false);
+
+  // If the active channel got disabled, fall back to the first available one.
+  useEffect(() => {
+    if (enabledChannels && !channelList.some((c) => c.id === channel) && channelList[0]) {
+      switchChannel(channelList[0].id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabledChannels]);
 
   const savedForChannel = beneficiaries.filter((b) => b.channel === channel);
 
@@ -148,6 +175,10 @@ export default function TransferForm({ scope = "own", backHref = "/dashboard" })
     if (!fromAccount) return "Select a source account.";
     const amt = parseFloat(amount);
     if (!amt || amt <= 0) return "Enter a valid amount.";
+    if (!isAdmin && limits.min_transfer && amt < limits.min_transfer)
+      return `The minimum transfer is ${formatCurrency(limits.min_transfer, active?.currency || "USD")}.`;
+    if (!isAdmin && limits.max_transfer && amt > limits.max_transfer)
+      return `The maximum transfer is ${formatCurrency(limits.max_transfer, active?.currency || "USD")}.`;
     if (active && amt > Number(active.balance)) return "Insufficient demo balance.";
     for (const f of config.fields) {
       if (f.required && !values[f.name]?.trim()) return `${f.label} is required.`;
@@ -161,7 +192,23 @@ export default function TransferForm({ scope = "own", backHref = "/dashboard" })
     setError("");
     setStep("review");
   }
-  async function confirm() {
+  // Ask the server to email a one-time code, then open the code entry step.
+  async function startOtp() {
+    setOtpBusy(true); setError(""); setOtpInfo(null); setOtpCode("");
+    try {
+      const res = await fetch("/api/transfer/send-otp", { method: "POST" });
+      const json = await res.json();
+      setOtpInfo(json.sent ? { to: json.to } : json.demo ? { demo: true, code: json.code } : { error: json.error || "Couldn't send a code." });
+      setOtpOpen(true);
+    } catch {
+      setOtpInfo({ error: "Couldn't send a code. Please try again." });
+      setOtpOpen(true);
+    } finally {
+      setOtpBusy(false);
+    }
+  }
+
+  async function confirm(otp) {
     setLoading(true);
     setError("");
     try {
@@ -176,19 +223,27 @@ export default function TransferForm({ scope = "own", backHref = "/dashboard" })
           recipientLabel: config.labelFrom(values),
           note: note || null,
           metadata: { channel, ...values },
+          otp: otp || null,
         }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Transfer failed");
+      setOtpOpen(false);
       setResult(json.transaction);
       setStep("success");
       await loadAccounts();
     } catch (err) {
       setError(err.message);
-      setStep("review");
+      if (!otpOpen) setStep("review");
     } finally {
       setLoading(false);
     }
+  }
+
+  function afterPin() {
+    setShowPin(false);
+    if (require2fa) startOtp();
+    else confirm();
   }
   function reset() {
     setValues({});
@@ -226,7 +281,7 @@ export default function TransferForm({ scope = "own", backHref = "/dashboard" })
           <div className="card p-5">
             <label className="label mb-3">Transfer method</label>
             <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
-              {CHANNELS.map((c) => {
+              {channelList.map((c) => {
                 const CI = BRAND_CHANNEL_ICONS[c.id];
                 const activeTab = c.id === channel;
                 return (
@@ -372,10 +427,70 @@ export default function TransferForm({ scope = "own", backHref = "/dashboard" })
     <PinGate
       open={showPin}
       onClose={() => setShowPin(false)}
-      onVerified={() => { setShowPin(false); confirm(); }}
+      onVerified={afterPin}
       title="Authorize transfer"
       subtitle={`${formatCurrency(parseFloat(amount || 0), active?.currency || "USD")} · ${CHANNELS.find((c) => c.id === channel)?.label || ""}`}
     />
+
+    <AnimatePresence>
+      {otpOpen && (
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/55 p-5"
+          onClick={() => !loading && setOtpOpen(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.96, y: 10 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.96, y: 10 }}
+            className="card w-full max-w-sm p-6" onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-1 flex items-center gap-2">
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-brand/10 text-brand"><LockIcon size={18} /></span>
+              <h3 className="text-base font-semibold text-ink">Verify it&apos;s you</h3>
+            </div>
+            <p className="text-sm text-muted">
+              {otpInfo?.to
+                ? `We emailed a 6-digit code to ${otpInfo.to}. Enter it to authorise this transfer.`
+                : "Enter the 6-digit code to authorise this transfer."}
+            </p>
+
+            {otpInfo?.demo && (
+              <div className="mt-3 rounded-xl border border-warn/40 bg-warn/10 px-4 py-2.5 text-sm text-warn">
+                Demo mode (email not configured). Your code is <span className="font-mono font-bold">{otpInfo.code}</span>.
+              </div>
+            )}
+            {otpInfo?.error && (
+              <div className="mt-3 rounded-xl border border-danger/40 bg-danger/10 px-4 py-2.5 text-sm text-danger">{otpInfo.error}</div>
+            )}
+
+            <input
+              value={otpCode}
+              onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              inputMode="numeric"
+              placeholder="••••••"
+              className="input mt-4 text-center font-mono text-2xl tracking-[0.5em]"
+              autoFocus
+            />
+
+            {error && <div className="mt-3 rounded-xl border border-danger/40 bg-danger/10 px-4 py-2.5 text-sm text-danger">{error}</div>}
+
+            <div className="mt-5 flex gap-3">
+              <button onClick={() => setOtpOpen(false)} disabled={loading} className="btn-ghost flex-1">Cancel</button>
+              <button onClick={() => confirm(otpCode)} disabled={loading || otpCode.length < 6} className="btn-primary flex-1">
+                {loading ? "Verifying…" : "Confirm transfer"}
+              </button>
+            </div>
+
+            <button
+              onClick={startOtp}
+              disabled={otpBusy || loading}
+              className="mx-auto mt-3 block text-xs text-muted underline-offset-2 hover:text-ink hover:underline disabled:opacity-50"
+            >
+              {otpBusy ? "Sending…" : "Resend code"}
+            </button>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
     </>
   );
 }
