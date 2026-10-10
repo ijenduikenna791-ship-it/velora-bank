@@ -25,13 +25,28 @@ function LoginForm() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
+      setLoading(false);
       setError(error.message);
       return;
     }
-    router.push(params.get("next") || "/dashboard");
+
+    // Role is read from the authenticated user's DB record — never from the
+    // form input or a client variable. Admins go to the admin console,
+    // everyone else to their dashboard.
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", data.user.id)
+      .single();
+
+    setLoading(false);
+    if (profile?.role === "admin") {
+      router.push("/admin");
+    } else {
+      router.push(params.get("next") || "/dashboard");
+    }
     router.refresh();
   }
 
