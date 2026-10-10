@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import TxnList from "@/components/dashboard/TxnList";
+import TxnListWithDetail from "@/components/dashboard/TxnListWithDetail";
 import { formatCurrency } from "@/lib/utils";
 import { UsersIcon, ReceiptIcon, TrendingUpIcon, BankIcon } from "@/components/ui/icons";
 
@@ -65,7 +65,7 @@ export default async function AdminOverview() {
 
       <div>
         <h3 className="mb-3 text-sm font-semibold text-ink">Latest transactions</h3>
-        <TxnList transactions={recent || []} ownAccountIds={[]} />
+        <TxnListWithDetail transactions={recent || []} ownAccountIds={[]} />
       </div>
     </div>
   );

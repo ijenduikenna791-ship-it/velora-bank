@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { CHANNELS } from "@/lib/utils";
-import TxnList from "@/components/dashboard/TxnList";
+import TxnListWithDetail from "@/components/dashboard/TxnListWithDetail";
 import { SearchIcon, CloseIcon } from "@/components/ui/icons";
 
 export default function TransactionsPage() {
@@ -114,7 +114,7 @@ export default function TransactionsPage() {
       {loading ? (
         <div className="card p-8 text-center text-sm text-muted">Loading…</div>
       ) : (
-        <TxnList transactions={filtered} ownAccountIds={ownIds} />
+        <TxnListWithDetail transactions={filtered} ownAccountIds={ownIds} />
       )}
     </div>
   );

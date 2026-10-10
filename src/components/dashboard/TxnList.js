@@ -2,12 +2,13 @@
 
 import { motion } from "framer-motion";
 import { formatCurrency, formatDateTime, maskAccount } from "@/lib/utils";
-import { ArrowUpRightIcon, ArrowDownLeftIcon } from "@/components/ui/icons";
+import { ArrowUpRightIcon, ArrowDownLeftIcon, ChevronRightIcon } from "@/components/ui/icons";
 import { BRAND_CHANNEL_ICONS } from "@/components/ui/brand-icons";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 
-export default function TxnList({ transactions = [], ownAccountIds = [], compact = false }) {
+export default function TxnList({ transactions = [], ownAccountIds = [], compact = false, onSelect }) {
   const { t } = useI18n();
+  const clickable = typeof onSelect === "function";
 
   if (!transactions.length) {
     return (
@@ -23,14 +24,9 @@ export default function TxnList({ transactions = [], ownAccountIds = [], compact
       {transactions.map((tx, i) => {
         const incoming = ownAccountIds.includes(tx.to_account) && !ownAccountIds.includes(tx.from_account);
         const Brand = BRAND_CHANNEL_ICONS[tx.type];
-        return (
-          <motion.div
-            key={tx.id}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: Math.min(i * 0.04, 0.3) }}
-            className="flex items-center gap-4 px-5 py-4"
-          >
+
+        const content = (
+          <>
             {Brand ? (
               <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center">
                 <Brand size={34} />
@@ -67,6 +63,36 @@ export default function TxnList({ transactions = [], ownAccountIds = [], compact
               </div>
               <div className="mt-0.5 text-[11px] capitalize text-muted">{tx.status}</div>
             </div>
+
+            {clickable && <ChevronRightIcon size={16} className="ml-1 shrink-0 text-muted" />}
+          </>
+        );
+
+        if (clickable) {
+          return (
+            <motion.button
+              key={tx.id}
+              type="button"
+              onClick={() => onSelect(tx)}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: Math.min(i * 0.04, 0.3) }}
+              className="flex w-full items-center gap-4 px-5 py-4 text-left transition hover:bg-white/5"
+            >
+              {content}
+            </motion.button>
+          );
+        }
+
+        return (
+          <motion.div
+            key={tx.id}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: Math.min(i * 0.04, 0.3) }}
+            className="flex items-center gap-4 px-5 py-4"
+          >
+            {content}
           </motion.div>
         );
       })}
