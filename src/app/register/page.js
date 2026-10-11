@@ -37,7 +37,11 @@ export default function RegisterPage() {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName, country, phone: phone.trim() } },
+      options: {
+        data: { full_name: fullName, country, phone: phone.trim() },
+        // After confirming their email, land on the sign-in page.
+        emailRedirectTo: typeof window !== "undefined" ? `${window.location.origin}/login` : undefined,
+      },
     });
     setLoading(false);
     if (error) {
